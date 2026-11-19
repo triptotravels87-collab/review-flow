@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum EventType {
+  SCAN
+  DRAFTS_VIEWED
+  DRAFT_COPIED
+  GOOGLE_REDIRECT
+  PRIVATE_CONTACT
+}
+
+model Event {
+  id        String    @id @default(cuid())
+  type      EventType
+  rating    Int?
+  language  String?
+  source    String?   // "qr" | "direct" | etc.
+  sessionId String
+  createdAt DateTime  @default(now())
+
+  @@index([createdAt])
+  @@index([type])
+  @@index([type, createdAt])
+}
+
+model PrivateFeedback {
+  id        String   @id @default(cuid())
+  name      String?
+  contact   String?
+  message   String
+  rating    Int?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model RateLimit {
+  key         String   @id
+  count       Int
+  windowStart DateTime
+}
+
+// Single row (id = 1). Null/empty fields fall back to env vars.
+model Settings {
+  id         Int      @id @default(1)
+  keywords   String?
+  staffNames String?
+  services   String?
+  brandColor String?
+  updatedAt  DateTime @updatedAt
+}
